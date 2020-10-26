@@ -2,23 +2,60 @@
 """
 Data Wrangling
 
+@input: Target Symbol (string)
+        Market Data (DataFrame)
+        Correlation Threshold (float)
+@output: Modeling Data (DataFrame)
+
 Created on Oct 2020
 @author: Murilo Fregonesi Falleiros
 """
 
-'''
-TODO
-1.  Manually analyze data, find correlations with price
-    Either automate or standardize this procedure
-    Define variables to be included into the modeling process
-3.  Manually verify the nature of the correlation
-    Either automate or standardize this procedure
-    Define the modeling methods to be applied
-4.  Review the DataFrame and drop or adapt significant missing values
-'''
+def WrangleModelingData(sym, df_mkt, corrThreshold):
 
-from FundamentusScraper import ScrapMarketData
-
-sym = 'BBAS3' # Target Stock Symbol
-df_mkt = ScrapMarketData(sym) # Market DataFrame
-
+    #%% Prepare Modeling DataFrame
+    
+    import numpy as np
+    import pandas as pd
+    
+    # Remove columns not available on Target Stock
+    drop_list = df_mkt.loc[sym] == 0
+    for i, item in enumerate(drop_list):
+        if(item):
+            df_mkt = df_mkt.drop(drop_list.index[i], axis='columns')
+    
+    # Remove Symbols with missing data
+    df_mkt = df_mkt.replace(0,np.nan)
+    df_mkt = df_mkt.dropna()
+    
+    # Find features correlation with price
+    df_corr = pd.DataFrame(df_mkt.corr()['Cotação'])
+    df_corr['CorrAbs'] = df_corr['Cotação'].abs()
+    
+    df_corr.sort_values(by='CorrAbs', axis=0, ascending=False, inplace=True)
+    df_corr.columns = ['Corr','CorrAbs']
+    print(df_corr['Corr'])
+    
+    # Select Model Features
+    df_select = df_corr[df_corr['CorrAbs'] > corrThreshold]
+    df_model = df_mkt[df_select.index]
+    print('Considered Features:',df_model.columns[1:])
+    
+    if df_model.shape[1] >= 2:
+    
+        import matplotlib.pyplot as plt
+        
+        y = df_model['Cotação']
+        
+        fig = plt.figure()
+        fig.add_subplot(1,2,1)
+        plt.scatter(df_model.iloc[:,1], y)
+        plt.xlabel(df_model.columns[1])
+        plt.ylabel('Price (R$)')
+        
+        fig.add_subplot(1,2,2)
+        plt.scatter(df_model.iloc[:,2], y)
+        plt.xlabel(df_model.columns[2])
+        plt.ylabel('Price (R$)')
+        
+    return df_model
