@@ -39,7 +39,7 @@ def ScrapMarketData(sym):
                 
                 if(td.text == '?Setor'):
                     href = str(tds[iTd + 1].a).replace('"',' ').split()[2]
-                    print('Setor \'{}\', número {}'.format(tds[iTd + 1].text,href[href.find('=')+1:len(href)]))
+                    print('\nSector \'{}\', number {}'.format(tds[iTd + 1].text,href[href.find('=')+1:len(href)]))
                     
     req = Request((fund_url + href),headers=hdr)
     doc = urlopen(req)
@@ -75,4 +75,10 @@ def ScrapMarketData(sym):
         
         df_mkt[col] = df_mkt[col].astype(float)
         
-    return df_mkt
+    totCompanies = df_mkt.shape[0]
+    print('Total companies: {}'.format(totCompanies))
+    
+    if totCompanies > 3:
+        return df_mkt
+    else:
+        return -1;
