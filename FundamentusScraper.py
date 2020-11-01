@@ -41,10 +41,13 @@ def ScrapMarketData(sym):
                     href = str(tds[iTd + 1].a).replace('"',' ').split()[2]
                     print('\nSector \'{}\', number {}'.format(tds[iTd + 1].text,href[href.find('=')+1:len(href)]))
                     
-    req = Request((fund_url + href),headers=hdr)
-    doc = urlopen(req)
-    soup_mkt = bs.BeautifulSoup(doc,'lxml') # HTML doc data structure
-                
+    try:
+        req = Request((fund_url + href),headers=hdr)
+        doc = urlopen(req)
+        soup_mkt = bs.BeautifulSoup(doc,'lxml') # HTML doc data structure
+    except:
+        return -1
+                    
     #%% Market Scrap
     
     import pandas as pd
@@ -81,4 +84,4 @@ def ScrapMarketData(sym):
     if totCompanies > 3:
         return df_mkt
     else:
-        return -1;
+        return -1
