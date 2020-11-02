@@ -9,7 +9,7 @@ Created on Oct 2020
 @author: Murilo Fregonesi Falleiros
 """
 
-def ScrapMarketData(sym):
+def ScrapMarketData(sym, Gui):
 
     #%% Fundamentus Access
     
@@ -39,7 +39,7 @@ def ScrapMarketData(sym):
                 
                 if(td.text == '?Setor'):
                     href = str(tds[iTd + 1].a).replace('"',' ').split()[2]
-                    print('\nSector \'{}\', number {}'.format(tds[iTd + 1].text,href[href.find('=')+1:len(href)]))
+                    Gui.AppendLog('\nSector \'{}\', number {}'.format(tds[iTd + 1].text,href[href.find('=')+1:len(href)]))
                     
     try:
         req = Request((fund_url + href),headers=hdr)
@@ -79,7 +79,7 @@ def ScrapMarketData(sym):
         df_mkt[col] = df_mkt[col].astype(float)
         
     totCompanies = df_mkt.shape[0]
-    print('Total companies: {}'.format(totCompanies))
+    Gui.AppendLog('Total companies: {}'.format(totCompanies))
     
     if totCompanies > 3:
         return df_mkt

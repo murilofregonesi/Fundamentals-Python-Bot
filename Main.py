@@ -8,7 +8,6 @@ Created on Oct 2020
 
 
 # TODO
-# Interact with graph functions
 # interact with logging functions
 
 # TODO testes: BBAS3, ELET3, ABEV3
@@ -17,11 +16,12 @@ Created on Oct 2020
 from FundamentusScraper import ScrapMarketData
 from DataWrangling import WrangleModelingData
 from DataModeling import PolynomialModeling
-from GuiHandler import Window
+from GuiHandler import *
 
 import pandas as pd
 from PyQt5.QtWidgets import *
 import sys
+
 
 # Run Application, Create the GUI
 if __name__ == '__main__':
@@ -40,20 +40,19 @@ if __name__ == '__main__':
     sys.exit(app.exec_()) # Clean Exit
 
 
+# Start Calculations
 def StartBotCalculations(sym, Gui):
 
-    corrThreshold = 0.38 # Correlation Threshold
-    print('\nSelected Symbol is', sym)
-
-    df_mkt = ScrapMarketData(sym) # Market DataFrame
+    corrThreshold = 0.20 # Correlation Threshold
+    df_mkt = ScrapMarketData(sym, Gui) # Market DataFrame
 
     if type(df_mkt) != pd.core.frame.DataFrame:
-        print('Invalid market dataset')
+        Gui.AppendLog('* Market dataset is not valid. Analysis fineshed.')
     else:
-        df_model = WrangleModelingData(sym, df_mkt, corrThreshold) # Model DataFrame
+        df_model = WrangleModelingData(sym, df_mkt, corrThreshold, Gui) # Model DataFrame
         
         if df_model.shape[1] > 1:
-            PolynomialModeling(sym, df_model) # Polynomial Modeling
+            PolynomialModeling(sym, df_model, Gui) # Polynomial Modeling
+            Gui.AppendLog('Analysis concluded.')
         else:
-            print('No valid dataset for modeling')
-        
+            Gui.AppendLog('* Modeling dataset is not valid. Analysis fineshed.')

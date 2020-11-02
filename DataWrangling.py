@@ -11,7 +11,7 @@ Created on Oct 2020
 @author: Murilo Fregonesi Falleiros
 """
 
-def WrangleModelingData(sym, df_mkt, corrThreshold):
+def WrangleModelingData(sym, df_mkt, corrThreshold, Gui):
 
     #%% Prepare Modeling DataFrame
     
@@ -30,13 +30,13 @@ def WrangleModelingData(sym, df_mkt, corrThreshold):
     
     df_corr.sort_values(by='CorrAbs', axis=0, ascending=False, inplace=True)
     df_corr.columns = ['Corr','CorrAbs']
-    print('\nCorrelations:')
-    print(df_corr['Corr'])
+    Gui.AppendLog('\nCorrelations:')
+    Gui.AppendLog(str(df_corr['Corr']))
     
     # Select Model Features
     df_select = df_corr[df_corr['CorrAbs'] > corrThreshold]
     df_model = df_mkt[df_select.index]
-    print('\nConsidered Features:',df_model.columns[1:])
+    Gui.AppendLog('\nConsidered Features:' + str(df_model.columns[1:]))
     
     # Remove Symbols with missing main features data
     df_model = df_model.replace(0,np.nan)

@@ -7,34 +7,12 @@ Created on Oct 2020
 """
 
 # TODO
-# Create graph functions
 # Create logging functions
 
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import QtCore
-
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
-
-class PlotCanvas(FigureCanvas):
-    def __init__(self, parent):
-
-        fig, self.ax = plt.subplots(figsize=(5, 3), dpi=200)
-        super().__init__(fig)
-        self.setParent(parent)
-
-        self.ax.plot([0,1,2,3,4], [10,1,20,3,40])
-        self.ax.set(xlabel='x label (unit)', ylabel='y label (unit)', title='title')
-        self.ax.grid
-        
-        ''' TODO
-        format and place the whole figure
-        Input graph from other places
-        Initialize without figure
-        '''
-
 
 class Window(QMainWindow):
 
@@ -43,7 +21,7 @@ class Window(QMainWindow):
 
         # Window
         self.setWindowTitle('Fundamentals Python Bot')
-        self.setGeometry(100, 100, 540, 394)
+        self.setGeometry(100, 100, 800, 600)
         self.setWindowIcon(QIcon('app_icon.png'))
 
         # Input
@@ -54,34 +32,24 @@ class Window(QMainWindow):
         self.startLine.setGeometry(QtCore.QRect(20, 30, 91, 20))
 
         self.startBtn = QPushButton('Start Analysis', self)
-        self.startBtn.setGeometry(QtCore.QRect(20, 60, 91, 23))
+        self.startBtn.setGeometry(QtCore.QRect(20, 60, 91, 40))
         self.startBtn.clicked.connect(self.__OnStartClick)
 
         # Logging
         self.logLabel = QLabel('Logging',self)
-        self.logLabel.setGeometry(QtCore.QRect(130, 10, 47, 21))
+        self.logLabel.setGeometry(QtCore.QRect(150, 10, 47, 21))
 
         self.logPlain = QPlainTextEdit(self)
-        self.logPlain.setGeometry(QtCore.QRect(130, 30, 391, 81))
+        self.logPlain.setGeometry(QtCore.QRect(150, 30, 350, 90))
+        self.logPlain.setReadOnly(True)
         
         # Graphics
         self.plotLabel = QLabel('Market Distribution',self)
         self.plotLabel.setGeometry(QtCore.QRect(20, 120, 101, 21))
 
-
-
-
-        
-
-        self.plotGraphics = PlotCanvas(self)
-
-        ''' TODO
-        Call from outside
-        '''
-
         # Others
         self.companyLabel = QLabel('M&N Investing\nhttps://linktr.ee/murilofregonesifalleiros',self)
-        self.companyLabel.setGeometry(QtCore.QRect(20, 340, 501, 31))
+        self.companyLabel.setGeometry(QtCore.QRect(20, 560, 800, 31))
         self.__SetPalette()
         
         self.show()
@@ -116,11 +84,30 @@ class Window(QMainWindow):
 
     def __OnStartClick(self):
         self.__sym = self.startLine.text().upper()
+        self.ClearLog()
+        self.AppendLog('Selected Symbol is ' + self.__sym)
 
         from Main import StartBotCalculations
         StartBotCalculations(self.__sym, self)
 
-        self.show()
-
     def GetSymbol(self):
         return self.__sym
+
+    def ClearLog(self):
+        self.logPlain.clear()
+
+    def AppendLog(self, text):
+        self.logPlain.appendPlainText(text)
+
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
+
+class PlotCanvas(FigureCanvas):
+    def __init__(self, parent):
+
+        self.fig, self.ax = plt.subplots(figsize=(7.6, 4.1), dpi=100, clear=False)
+        super().__init__(self.fig)
+        
+        self.setParent(parent)
+        self.move(20, 140)

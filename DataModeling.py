@@ -6,7 +6,7 @@ Created on Oct 2020
 @author: Murilo Fregonesi Falleiros
 """
 
-def PolynomialModeling(sym, df_model):
+def PolynomialModeling(sym, df_model, Gui):
 
     #%% Polynomial Modeling
     
@@ -53,7 +53,7 @@ def PolynomialModeling(sym, df_model):
     scores = scores.sort_values(by='Distance',ascending=True)
     
     polyDg = scores.index[0] + 1
-    print('Selected polynomial degree {}'.format(polyDg))
+    Gui.AppendLog('Selected polynomial degree {}'.format(polyDg))
     
     # Create the final model
     poly = PolynomialFeatures(degree = polyDg)
@@ -77,27 +77,31 @@ def PolynomialModeling(sym, df_model):
     stdDev_test = np.std(y_test - y_pred)
     stdDev_train = np.std(y_train - y_train_pred)
     
-    print('\nTest Standard Deviation {dev:.2f}'.format(dev=stdDev_test))
-    print('Train Standard Deviation {dev:.2f}'.format(dev=stdDev_train))
+    Gui.AppendLog('\nTest Standard Deviation {dev:.2f}'.format(dev=stdDev_test))
+    Gui.AppendLog('Train Standard Deviation {dev:.2f}'.format(dev=stdDev_train))
     
     # Plot the results
     import matplotlib.pyplot as plt
-    
-    figWidth = (X_test.index.shape[0] + X_train.index.shape[0]) * 0.28
-    fig = plt.figure(figsize = (figWidth,5))
-    
-    ax1 = fig.add_subplot(111)
-    ax1.scatter(X_test.index, y_test)
-    ax1.scatter(X_test.index, y_pred)
-    ax1.scatter(X_train.index, y_train)
-    ax1.scatter(X_train.index, y_train_pred)
-    plt.ylabel('Cotação (R$)')
+    from GuiHandler import PlotCanvas
+
+    graph = PlotCanvas(Gui) # Start a Canvas
+
+    graph.ax.scatter(X_test.index, y_test)
+    graph.ax.scatter(X_test.index, y_pred)
+    graph.ax.scatter(X_train.index, y_train)
+    graph.ax.scatter(X_train.index, y_train_pred)
+
+    plt.ylabel('Price (R$)')
     plt.grid()
     plt.ylim(ymin=0)
-    plt.legend(['Real teste', 'Predição teste',
-                'Real treino', 'Predição treino'])
+    plt.legend(['Actual (test)', 'Prediction (test)',
+                'Actual (train)', 'Prediction (train)'])
     plt.xticks(rotation=90)
     plt.errorbar(X_test.index, y_pred, yerr = stdDev_test, linestyle='None',
                  ecolor='darkorange', capthick=3)
     plt.errorbar(X_train.index, y_train_pred, yerr = stdDev_train, linestyle='None',
                  ecolor='r', capthick=3)
+
+    plt.subplots_adjust(top = 0.99, bottom = 0.18, right = 0.99, left = 0.08, hspace = 0, wspace = 0)
+    graph.show()
+    
