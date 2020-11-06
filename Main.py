@@ -7,9 +7,6 @@ Created on Oct 2020
 """
 
 
-# TODO
-# interact with logging functions
-
 # TODO testes: BBAS3, ELET3, ABEV3
 
 
@@ -43,7 +40,7 @@ if __name__ == '__main__':
 # Start Calculations
 def StartBotCalculations(sym, Gui):
 
-    corrThreshold = 0.20 # Correlation Threshold
+    corrThreshold = 0.75 # Correlation Threshold
     df_mkt = ScrapMarketData(sym, Gui) # Market DataFrame
 
     if type(df_mkt) != pd.core.frame.DataFrame:
