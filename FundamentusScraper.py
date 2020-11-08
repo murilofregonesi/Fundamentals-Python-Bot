@@ -39,7 +39,7 @@ def ScrapMarketData(sym, Gui):
                 
                 if(td.text == '?Setor'):
                     href = str(tds[iTd + 1].a).replace('"',' ').split()[2]
-                    Gui.AppendLog('\nSector \'{}\', number {}'.format(tds[iTd + 1].text,href[href.find('=')+1:len(href)]))
+                    Gui.AppendLog('Market sector: \'{}\', reference number {}'.format(tds[iTd + 1].text,href[href.find('=')+1:len(href)]))
                     
     try:
         req = Request((fund_url + href),headers=hdr)
@@ -79,7 +79,7 @@ def ScrapMarketData(sym, Gui):
         df_mkt[col] = df_mkt[col].astype(float)
         
     totCompanies = df_mkt.shape[0]
-    Gui.AppendLog('Total companies: {}'.format(totCompanies))
+    Gui.AppendLog('Total number of companies: {}'.format(totCompanies))
     
     if totCompanies > 3:
         return df_mkt

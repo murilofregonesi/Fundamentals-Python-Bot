@@ -9,48 +9,14 @@ Data Modeling
 Created on Oct 2020
 @author: Murilo Fregonesi Falleiros
 """
-'''
-# TODO
-# only for testing, remove later
-from FundamentusScraper import ScrapMarketData
-from DataWrangling import WrangleModelingData
-from GuiHandler import *
-import pandas as pd
-from PyQt5.QtWidgets import *
-import sys
 
-if QApplication.instance():
-    app = QApplication.instance()
-else:
-    app = QApplication(sys.argv)
-
-# Start Window
-Gui = Window()
-
-#app.setStyle('Fusion')
-#app.exec_()
-#sys.exit(app.exec_()) # Clean Exit
-
-sym = 'BBAS3'
-corrThreshold = 0.20 # Correlation Threshold
-df_mkt = ScrapMarketData(sym, Gui) # Market DataFrame
-
-if type(df_mkt) != pd.core.frame.DataFrame:
-    Gui.AppendLog('* Market dataset is not valid. Analysis fineshed.')
-else:
-    df_model = WrangleModelingData(sym, df_mkt, corrThreshold, Gui) # Model DataFrame
-# Call modeling now
-'''
-#%%
-
-# TODO test
 def PolynomialModeling(sym, df_model, Gui):
 
-    #%% Polynomial Modeling
+    #%% Split Train and Test Data Sets
     
-    from sklearn.preprocessing import PolynomialFeatures
     from sklearn import linear_model
     from sklearn.model_selection import train_test_split
+    
     
     # Set target symbol apart
     X_sym = df_model.loc[sym][df_model.columns != 'P/VP'] # Features
@@ -65,58 +31,85 @@ def PolynomialModeling(sym, df_model, Gui):
     X = X.drop('Cotação', axis=1)
     
     # Split datasets
-    test_size = 0.15
+    test_size = 0.25
+    Gui.AppendLog('\nSize of Test set: {}%'.format(test_size*100))
+    
     X_train, X_test, y_train, y_test = train_test_split(X, y,
                                                         test_size=test_size,
                                                         random_state=42)
-    # Start Modeling
-    import numpy as np
     
-    maxDegree = 15
-    scores = np.empty(maxDegree) # R2 Scores
+    
+    #%% Perform Ridge Regression
+    
+    from sklearn.preprocessing import PolynomialFeatures
+    from sklearn.linear_model import Ridge
+    from sklearn.model_selection import GridSearchCV
+    
+    
+    maxDegree = 12 # Maximum Polynomial degree
+    nFolds = 4     # Cross-Validation folds
+    alphaNum = 30  # Number of alpha values
+    
+    import numpy as np
+    scores = np.empty(maxDegree) # CV Scores
+    alphas = np.empty(maxDegree) # Alphas
     
     for polyDg in range(maxDegree):
-        
-        poly = PolynomialFeatures(degree = polyDg + 1) # Poly features
+    
+        # Create Polynomial Sets
+        poly = PolynomialFeatures(degree = polyDg + 1)
         X_train_tr = poly.fit_transform(X_train)
         
-        poly_model = linear_model.LinearRegression() # Linear regression
-        poly_model.fit(X_train_tr, y_train)
+        # Implement Grid Search
+        ridge = Ridge(normalize=True)
+        alphaValues = np.geomspace(1e-3, 10, num=alphaNum)
+        gridParams = [{'alpha':alphaValues}]
+        grid = GridSearchCV(ridge, gridParams, cv=nFolds)
         
-        X_test_tr = poly.fit_transform(X_test) # Score from test set
-        y_test_pred = poly_model.predict(X_test_tr)
+        # Mean cross-validated score of the best_estimator
+        grid.fit(X_train_tr, y_train)
+        scores[polyDg] = grid.best_score_
+        alphas[polyDg] = grid.best_params_['alpha']
         
-        scores[polyDg] = poly_model.score(X_test_tr, y_test) # Scores array
     
-    # Select the best model degree
+    # Select the best Polynomial model
     import pandas as pd
     scores = pd.DataFrame(scores)
+    
     scores['Distance'] = 1 - scores # Optimum result: R2 = 1, Distance = 0
     scores = scores.sort_values(by='Distance', ascending=True) # Sorting results
     
-    polyDg = scores.index[0] + 1 # Best model
-    Gui.AppendLog('Selected polynomial degree {}'.format(polyDg))
+    polyDg = scores.index[0] + 1 # Best model degree
+    Gui.AppendLog('\nSelected polynomial degree {}'.format(polyDg))
+    
+    alpha = alphas[scores.index[0]]
+    Gui.AppendLog('Selected Ridge Alpha {}'.format(alpha))
+    
     
     # Recreate the best fit model
-    poly = PolynomialFeatures(degree = polyDg)
+    del poly
+    del X_train_tr
+    del ridge
+    
+    poly = PolynomialFeatures(degree = polyDg) # Create Polynomial Sets
     X_train_tr = poly.fit_transform(X_train)
     
-    poly_model = linear_model.LinearRegression()
-    poly_model.fit(X_train_tr, y_train)
-    
-    # Insert target symbol to the test set
-    X_test = pd.concat([pd.DataFrame(X_sym).transpose(), X_test])
-    y_test = pd.concat([pd.DataFrame(y_sym).transpose(), y_test])
-    
-    # Apply the model to the test set
-    X_test_tr = poly.fit_transform(X_test)
-    
-    # P/VP Predictions for Test and Train sets
-    y_test_pred = poly_model.predict(X_test_tr)
-    y_train_pred = poly_model.predict(X_train_tr)
+    ridge = Ridge(alpha=alpha, normalize=True) # Implement Ridge Regression
+    ridge.fit(X_train_tr, y_train)
     
     
     #%% Market Price Predictions
+    
+    # Insert target Symbol to the test set
+    # Place @1st
+    X_test = pd.concat([pd.DataFrame(X_sym).transpose(), X_test])
+    y_test = pd.concat([pd.DataFrame(y_sym).transpose(), y_test])
+    
+    # P/VP Predictions for Test and Train sets
+    y_train_pred = ridge.predict(X_train_tr)
+    
+    X_test_tr = poly.fit_transform(X_test)
+    y_test_pred = ridge.predict(X_test_tr)
     
     # Append Predictions to Target variable sets
     y_test['P/VP pred'] = y_test_pred
@@ -138,8 +131,14 @@ def PolynomialModeling(sym, df_model, Gui):
     stdDev_test = np.std(y_test['Cotação'] - y_test['Cotação pred'])
     stdDev_train = np.std(y_train['Cotação'] - y_train['Cotação pred'])
     
-    Gui.AppendLog('\nTest Standard Deviation {dev:.2f}'.format(dev=stdDev_test))
-    Gui.AppendLog('Train Standard Deviation {dev:.2f}'.format(dev=stdDev_train))
+    Gui.AppendLog('\nTest Standard Deviation R$ {dev:.2f}'.format(dev=stdDev_test))
+    Gui.AppendLog('Train Standard Deviation R$ {dev:.2f}'.format(dev=stdDev_train))
+    
+    Gui.AppendLog('\n* {}'.format(sym))
+    Gui.AppendLog('Actual price:\tR$ {p:.2f}'.format(p=y_test.loc[sym,'Cotação']))
+    Gui.AppendLog('Price prediction:\tR$ {p:.2f}'.format(p=y_test.loc[sym,'Cotação pred']))
+    Gui.AppendLog('Dev prediction:\tR$ {p1:.2f} to R$ {p2:.2f}'.format(p1=y_test.loc[sym,'Cotação pred']-stdDev_test,
+                                                                       p2=y_test.loc[sym,'Cotação pred']+stdDev_test))
     
     
     #%% Show the Results

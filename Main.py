@@ -9,6 +9,12 @@ Created on Oct 2020
 
 # TODO testes: BBAS3, ELET3, ABEV3
 
+''' TODO
+Add corrThs, Test size to GUI
+Verify outliers and remove them from model fit
+Verify outliers and remove them from deviation calc
+'''
+
 
 from FundamentusScraper import ScrapMarketData
 from DataWrangling import WrangleModelingData
@@ -50,6 +56,6 @@ def StartBotCalculations(sym, Gui):
         
         if df_model.shape[1] > 1:
             PolynomialModeling(sym, df_model, Gui) # Polynomial Modeling
-            Gui.AppendLog('Analysis concluded.')
+            Gui.AppendLog('\nAnalysis concluded!')
         else:
             Gui.AppendLog('* Modeling dataset is not valid. Analysis fineshed.')

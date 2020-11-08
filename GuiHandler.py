@@ -6,10 +6,6 @@ Created on Oct 2020
 @author: Murilo Fregonesi Falleiros
 """
 
-# TODO
-# Create logging functions
-
-
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import QtCore
@@ -85,7 +81,7 @@ class Window(QMainWindow):
     def __OnStartClick(self):
         self.__sym = self.startLine.text().upper()
         self.ClearLog()
-        self.AppendLog('Selected Symbol is ' + self.__sym)
+        self.AppendLog('Symbol for analysis ' + self.__sym)
 
         from Main import StartBotCalculations
         StartBotCalculations(self.__sym, self)

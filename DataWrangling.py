@@ -32,14 +32,19 @@ def WrangleModelingData(sym, df_mkt, corrThreshold, Gui):
     df_corr.sort_values(by='CorrAbs', axis=0, ascending=False, inplace=True)
     df_corr.columns = ['Corr','CorrAbs']
     
-    Gui.AppendLog('\nCorrelations:')
-    Gui.AppendLog(str(df_corr['Corr']))
+    Gui.AppendLog('\nFeatures correlation:')
+    for i, c in zip(df_corr['Corr'].index, df_corr['Corr']):
+        Gui.AppendLog(i + '\t' + '{c:.3f}'.format(c=c))
 
     # Select Model Features
     df_select = df_corr[df_corr['CorrAbs'] > corrThreshold]
     df_model = df_mkt[df_select.index]
-
-    Gui.AppendLog('\nConsidered Features:' + str(df_model.columns[1:]))
+    
+    Gui.AppendLog('\nConsidered correlation threshold: {}'.format(corrThreshold))
+    
+    Gui.AppendLog('Considered Features ({}):'.format(len(df_model.columns[1:])))
+    for f in df_model.columns[1:]:
+        Gui.AppendLog(f)
 
     # Repair price column if necessary
     if 'Cotação' not in df_model:
