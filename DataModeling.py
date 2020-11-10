@@ -14,7 +14,6 @@ def PolynomialModeling(sym, df_model, Gui):
 
     #%% Split Train and Test Data Sets
     
-    from sklearn import linear_model
     from sklearn.model_selection import train_test_split
     
     
@@ -80,7 +79,7 @@ def PolynomialModeling(sym, df_model, Gui):
     scores = scores.sort_values(by='Distance', ascending=True) # Sorting results
     
     polyDg = scores.index[0] + 1 # Best model degree
-    Gui.AppendLog('\nSelected polynomial degree {}'.format(polyDg))
+    Gui.AppendLog('Selected polynomial degree {}'.format(polyDg))
     
     alpha = alphas[scores.index[0]]
     Gui.AppendLog('Selected Ridge Alpha {}'.format(alpha))
@@ -127,24 +126,63 @@ def PolynomialModeling(sym, df_model, Gui):
     y_test['Cotação pred'] = y_test['VPA'] * y_test['P/VP pred']
     y_train['Cotação pred'] = y_train['VPA'] * y_train['P/VP pred']
     
-    # Predictions Standard Deviation
-    stdDev_test = np.std(y_test['Cotação'] - y_test['Cotação pred'])
-    stdDev_train = np.std(y_train['Cotação'] - y_train['Cotação pred'])
+    
+    #%% Prediction Deviation
+    
+    # Find Prediction Outliers
+    maxDevRatio = 2
+    
+    y_test['Outlier'] = (abs(y_test['Cotação pred'] / y_test['Cotação']) > maxDevRatio) | \
+                        (abs(y_test['Cotação'] / y_test['Cotação pred']) > maxDevRatio)
+
+    y_train['Outlier'] = (abs(y_train['Cotação pred'] / y_train['Cotação']) > maxDevRatio) | \
+                         (abs(y_train['Cotação'] / y_train['Cotação pred']) > maxDevRatio)
+    
+    # Calculate Standard Deviation
+    error_test = y_test.loc[y_test['Outlier'] == False,'Cotação'] - \
+                 y_test.loc[y_test['Outlier'] == False,'Cotação pred']
+    
+    error_train = y_train.loc[y_train['Outlier'] == False,'Cotação'] - \
+                  y_train.loc[y_train['Outlier'] == False,'Cotação pred']
+
+    stdDev_test = np.std(error_test)
+    stdDev_train = np.std(error_train)
     
     Gui.AppendLog('\nTest Standard Deviation R$ {dev:.2f}'.format(dev=stdDev_test))
     Gui.AppendLog('Train Standard Deviation R$ {dev:.2f}'.format(dev=stdDev_train))
     
+    # Append Outliers to Log
+    test_outliers = y_test[y_test['Outlier'] == True]
+    train_outliers = y_train[y_train['Outlier'] == True]
+    
+    if test_outliers.shape[0] > 0:
+        Gui.AppendLog('\nTest Dataset Outliers (removed from deviation calc)')
+        for outlier in test_outliers.index:
+            Gui.AppendLog(outlier)
+            
+    if train_outliers.shape[0] > 0:
+        Gui.AppendLog('\nTrain Dataset Outliers (removed from deviation calc)')
+        for outlier in train_outliers.index:
+            Gui.AppendLog(outlier)        
+    
+    
+    #%% Show the Results
+    
+    # Symbol Analysis Summary Log
     Gui.AppendLog('\n* {}'.format(sym))
     Gui.AppendLog('Actual price:\tR$ {p:.2f}'.format(p=y_test.loc[sym,'Cotação']))
     Gui.AppendLog('Price prediction:\tR$ {p:.2f}'.format(p=y_test.loc[sym,'Cotação pred']))
     Gui.AppendLog('Dev prediction:\tR$ {p1:.2f} to R$ {p2:.2f}'.format(p1=y_test.loc[sym,'Cotação pred']-stdDev_test,
                                                                        p2=y_test.loc[sym,'Cotação pred']+stdDev_test))
     
-    
-    #%% Show the Results
-    
     import matplotlib.pyplot as plt
     from GuiHandler import PlotCanvas
+    
+    font = {'family' : 'normal',
+            'weight' : 'normal',
+            'size'   : 9}
+    
+    plt.rc('font', **font)
     
     graph = PlotCanvas(Gui) # Start a Canvas
     
@@ -169,6 +207,6 @@ def PolynomialModeling(sym, df_model, Gui):
     plt.errorbar(X_train.index, y_train['Cotação pred'], yerr = stdDev_train,
                  linestyle='None', ecolor='r', capthick=3)
     
-    plt.subplots_adjust(top = 0.99, bottom = 0.18, right = 0.99, left = 0.08,
+    plt.subplots_adjust(top = 0.89, bottom = 0.18, right = 0.99, left = 0.08,
                         hspace = 0, wspace = 0)
     graph.show()

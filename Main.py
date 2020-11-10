@@ -6,23 +6,13 @@ Created on Oct 2020
 @author: Murilo Fregonesi Falleiros
 """
 
-
-# TODO testes: BBAS3, ELET3, ABEV3
-
-''' TODO
-Add corrThs, Test size to GUI
-Verify outliers and remove them from model fit
-Verify outliers and remove them from deviation calc
-'''
-
-
 from FundamentusScraper import ScrapMarketData
 from DataWrangling import WrangleModelingData
 from DataModeling import PolynomialModeling
 from GuiHandler import *
 
-import pandas as pd
 from PyQt5.QtWidgets import *
+import pandas as pd
 import sys
 
 

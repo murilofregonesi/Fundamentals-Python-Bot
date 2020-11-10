@@ -17,7 +17,7 @@ class Window(QMainWindow):
 
         # Window
         self.setWindowTitle('Fundamentals Python Bot')
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 900, 600)
         self.setWindowIcon(QIcon('app_icon.png'))
 
         # Input
@@ -36,7 +36,7 @@ class Window(QMainWindow):
         self.logLabel.setGeometry(QtCore.QRect(150, 10, 47, 21))
 
         self.logPlain = QPlainTextEdit(self)
-        self.logPlain.setGeometry(QtCore.QRect(150, 30, 350, 90))
+        self.logPlain.setGeometry(QtCore.QRect(150, 30, 350, 80))
         self.logPlain.setReadOnly(True)
         
         # Graphics
@@ -97,13 +97,21 @@ class Window(QMainWindow):
 
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 
 class PlotCanvas(FigureCanvas):
     def __init__(self, parent):
 
-        self.fig, self.ax = plt.subplots(figsize=(7.6, 4.1), dpi=100, clear=False)
+        self.fig, self.ax = plt.subplots(figsize=(8.6, 4.1), dpi=100, clear=False)
         super().__init__(self.fig)
         
         self.setParent(parent)
         self.move(20, 140)
+        
+        # Create a Navigation Toolbar
+        self.plot_layout = QVBoxLayout(self)
+        self.navi_toolbar = NavigationToolbar(self, parent)
+        self.plot_layout.addWidget(self.navi_toolbar,
+                                   alignment=QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
+        
