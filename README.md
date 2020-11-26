@@ -1,18 +1,16 @@
-# FundamentalsPythonBot
+# Fundamentals Python Bot  
 Python application which models the stocks market regarding its fundamentals and then predicts the expected price to a symbol selected by the user.
 
-How does it work?
-1.Enter a symbol for analysis (e.g. bbas3)
+> How does it work?
 
-2.Market is modeled according to its fundamentals
-  - Target Variable: P/VP
-  - Most significant variables are selected for the model
-  - Polynomial regression (variable degree)
-	- Deprecated (master branch)
-  - Ridge regression (variable polynomial degree)
-  - Grid search for parameters selection
-  - Cross-validation considered
-
-3.Actual price and expected price (with deviation included) are exhibited onto the GUI
-  - Prices are calculated based on the P/VP predictions and VPA calculated
-  - Outliers predictions are removed from standard deviation calculation
+1. Enter a symbol for analysis (e.g. bbas3)
+2. Market is modeled according to its fundamentals
+    1. Target Variable: P/VP
+    2. Most significant variables are selected for the model
+    3.- Polynomial regression (variable degree) - Deprecated
+    4. Ridge regression (variable polynomial degree)
+    5. Grid search for parameters selection
+    6. Cross-validation considered
+3. Actual price and expected price (with deviation included) are exhibited onto the GUI
+    1. Prices are calculated based on the P/VP predictions and VPA calculated
+    2. Outliers predictions are removed from standard deviation calculation
