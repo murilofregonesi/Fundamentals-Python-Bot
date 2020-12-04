@@ -1,0 +1,2 @@
+
+virtual\Scripts\pyinstaller -F --hidden-import="sklearn.utils._weight_vector" -c -F -w --name Fundamentals-Python-Bot Main.py

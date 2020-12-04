@@ -1,6 +1,8 @@
 # Fundamentals Python Bot  
 Python application which models the stocks market regarding its fundamentals and then predicts the expected price to a symbol selected by the user.
 
+## [Executable Link](https://drive.google.com/file/d/1-mnJ5p6G4yGt5sujzHsBHui1BEDZejh9/view?usp=sharing)
+
 > How does it work?
 
 1. Enter a symbol for analysis (e.g. bbas3)
